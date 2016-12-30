@@ -2,7 +2,7 @@
 
 ( import: slurp reset-line line? )
 s" ../file.fs" included
-: load-file         s" day-4/input.txt" slurp drop drop ;
+: load-file         s" day-4/input.txt" slurp ;
 
 ( base string )
 variable str

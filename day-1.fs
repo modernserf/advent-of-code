@@ -2,7 +2,7 @@
 
 ( import: getc lf? nextc slurp )
 s" file.fs" included
-: load-file     s" 1.txt" slurp drop drop ;
+: load-file     s" 1.txt" slurp ;
 
 ( util )
 : -r>           postpone r> postpone negate  ; immediate

@@ -13,7 +13,7 @@ variable fh
 
 : start     here _src ! ;
 : finish    here _src @ - #src ! ;
-: slurp     start gulp finish _src @ #src @ ;
+: slurp     start gulp finish ;
 
 ( traversal )
 variable offset

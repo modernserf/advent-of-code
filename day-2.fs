@@ -3,7 +3,7 @@
 ( import: getc lf? nextc slurp )
 s" file.fs" included
 
-: load-file s" 2.txt" slurp drop drop ;
+: load-file s" 2.txt" slurp ;
 
 : clamp     0 max 2 min ;
 
