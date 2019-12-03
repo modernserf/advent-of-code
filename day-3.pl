@@ -3,19 +3,10 @@ triangle([A, B, C]) :-
     A + C > B,
     B + C > A.
 
-count_triangles([], N, N).
-count_triangles([Triple|Rest], Count, Out) :-
-    triangle(Triple),
-    NextCount is Count + 1,
-    count_triangles(Rest, NextCount, Out).
-count_triangles([Triple|Rest], Count, Out) :-
-    \+triangle(Triple),
-    count_triangles(Rest, Count, Out).
-
 %part 1
-count_triangles(Count) :-
-    numbers(Triples),
-    count_triangles(Triples, 0, Count).
+count_triangles(Triples, Count) :-
+    include(triangle, Triples, Valid),
+    length(Valid, Count).
 
 %part 2
 columns([], []).
@@ -23,10 +14,9 @@ columns([[A1,B1,C1],[A2,B2,C2],[A3,B3,C3]|InRest],
         [[A1,A2,A3],[B1,B2,B3],[C1,C2,C3]|OutRest]) :-
     columns(InRest, OutRest).
 
-count_col_triangles(Count) :-
-    numbers(Triples),
+count_col_triangles(Triples, Count) :-
     columns(Triples, ColTriples),
-    count_triangles(ColTriples, 0, Count).
+    count_triangles(ColTriples, Count).
 
 
 %parse input

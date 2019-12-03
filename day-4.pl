@@ -1,12 +1,7 @@
-sum_sector([], State, State).
-sum_sector([Room|Rest], State, Out) :-
-	\+valid_room(Room),
-	sum_sector(Rest, State, Out).
-sum_sector([Room|Rest], State, Out) :-
-    valid_room(Room),
-    sector(Room, Sector),
-    NextState is Sector + State,
-    sum_sector(Rest, NextState, Out).
+sum_sector(Rooms, Sum) :-
+    include(valid_room, Rooms, ValidRooms),
+    maplist(sector, ValidRooms, Sectors),
+    sum_list(Sectors, Sum).
 
 valid_room(Room) :-
     enc_name(Room, Name),
@@ -14,23 +9,20 @@ valid_room(Room) :-
     frequency(Name, Frequency),
     append(Checksum, _, Frequency).
 
-frequency(In, Letters) :-
-    frequency(In, [], Counts),
-    predsort(cmp, Counts, Sorted),
-    letters(Sorted, Letters).
-frequency([], State, State).
-frequency([H|T], State, Counts) :-
-    \+member((H,_), State),
-    frequency(T, [(H, 1)| State], Counts).
-frequency([H|T], State, Out) :-
-    append(Pre, [(H, Count)| Post], State),
+letter_freq(Letter, Dict, NextDict) :-
+    (Count = Dict.get(Letter), !; Count = 0),
     NextCount is Count + 1,
-    append(Pre, [(H, NextCount)|Post], NextState),
-    frequency(T, NextState, Out).
+    NextDict = Dict.put(Letter, NextCount).
+
+frequency(Chars, Letters) :-
+    foldl(letter_freq, Chars, freq{}, Dict),
+    dict_pairs(Dict, freq, Pairs),
+    predsort(cmp, Pairs, Sorted),
+    letters(Sorted, Letters).
 
 % sort high to low, then A-Z
 cmp(=, A, A).
-cmp(<, (Char1, Count1), (Char2, Count2)) :-
+cmp(<, Char1-Count1, Char2-Count2) :-
     Count1 > Count2;
     Count1 = Count2,
     Char1 @< Char2.
@@ -38,8 +30,8 @@ cmp(>, A, B) :-
     \+cmp(=, A, B),
 	\+cmp(<, A, B).
 
-letters([],[]).
-letters([(Char,_)|Rest],[Char|MRest]) :- letters(Rest, MRest).
+l(-(L, _), L).
+letters(Pairs, Ls) :- maplist(l, Pairs, Ls).
 
 % accessors
 enc_name(room(Name,_,_), Name).
@@ -49,33 +41,24 @@ checksum(room(_,_,Checksum), Checksum).
 % part1
 run1(Sum) :-
     room_list(List),
-    sum_sector(List, 0, Sum).
+    sum_sector(List, Sum).
 
 % part2
-shift_char(Char, Offset, Shifted) :-
+shift_char(Offset, Char, Shifted) :-
     char_code('a', ACode),
     char_code(Char, InitCode),
     NextCode is ((InitCode - ACode + Offset) mod 26) + ACode,
     char_code(Shifted, NextCode).
 
-shift_list([], _Offset, []).
-shift_list([H|T], Offset, [MH|MT]) :-
-    shift_char(H, Offset, MH),
-    shift_list(T, Offset, MT).
-
 is_north_pole(Room) :-
     valid_room(Room),
     enc_name(Room, Name),
     sector(Room, Sector),
-    shift_list(Name, Sector, Shifted),
+    maplist(shift_char(Sector), Name, Shifted),
     string_chars("northpoleobjectstorage", Shifted).
 
-find_north_pole_sector([Room|_], Sector) :-
-    is_north_pole(Room),
-    sector(Room, Sector).
-
 find_north_pole_sector([Room|Rest], Sector) :-
-    \+is_north_pole(Room),
+    (is_north_pole(Room), sector(Room, Sector));
     find_north_pole_sector(Rest, Sector).
 
 run2(Sector) :-
